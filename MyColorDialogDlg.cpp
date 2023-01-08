@@ -31,6 +31,7 @@ void CMyColorDialogDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CMyColorDialogDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -56,10 +57,9 @@ BOOL CMyColorDialogDlg::OnInitDialog()
 
 void CMyColorDialogDlg::OnPaint()
 {
+	CPaintDC dc(this); // 그리기를 위한 디바이스 컨텍스트입니다.
 	if (IsIconic())
-	{
-		CPaintDC dc(this); // 그리기를 위한 디바이스 컨텍스트입니다.
-
+	{	
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// 클라이언트 사각형에서 아이콘을 가운데에 맞춥니다.
@@ -75,7 +75,8 @@ void CMyColorDialogDlg::OnPaint()
 	}
 	else
 	{
-		CDialogEx::OnPaint();
+		dc.FillSolidRect(10, 10, 100, 100, m_user_color);
+		// CDialogEx::OnPaint();
 	}
 }
 
@@ -86,3 +87,23 @@ HCURSOR CMyColorDialogDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CMyColorDialogDlg::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	CRect r(10, 10, 110, 110);
+	if (r.PtInRect(point)) // 마우스로 클릭한 좌표가 영역 안에 들어있으면 if문 안에 들어옴
+	{
+		CColorDialog ins_dlg;
+		ins_dlg.m_cc.Flags |= CC_FULLOPEN | CC_RGBINIT;
+		ins_dlg.m_cc.rgbResult = m_user_color; // CC_RGBINIT 플래그가 세팅되있어야만 사용 가능
+		
+		if (IDOK == ins_dlg.DoModal())
+		{
+			m_user_color = ins_dlg.GetColor();
+			InvalidateRect(r);
+		}
+	}
+
+	CDialogEx::OnLButtonDown(nFlags, point);
+}
